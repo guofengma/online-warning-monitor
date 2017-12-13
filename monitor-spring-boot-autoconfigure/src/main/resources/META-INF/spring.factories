@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration= com.carrying.coder.autoconfiguration.TemplateClientConfig,\
+  com.carrying.coder.autoconfiguration.TokenHolder,\
+  com.carrying.coder.autoconfiguration.MessageSenderAutoConfiguration
