@@ -19,3 +19,12 @@ qy.weixin.secret=x
 # 如果不写，默认@all，即应用下所有关联的人
 #qy.weixin.touser=
 ``` 
+
+
+#### 用法
+```java
+
+@Autowired
+IMessageSender sender
+
+```
