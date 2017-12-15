@@ -17,7 +17,7 @@
     <modules>
         <module>monitor-spring-boot-autoconfigure</module>
         <module>monitor-spring-boot-starter</module>
-        <module>example</module>
+        <module>monitor-web-console</module>
     </modules>
 
     <dependencies>
