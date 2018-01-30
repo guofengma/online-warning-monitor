@@ -17,13 +17,21 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "qy.weixin")
 public class QyWeiXinAppProperties implements InitializingBean{
 
-    private String corpID;
+    public static String PROTOCOL = "https";
 
-    private int agentId;
+    public static String HOST="qyapi.weixin.qq.com";
 
-    private String secret;
+    public static String PATH = "/cgi-bin/message/send?access_token={access_token}";
+
+    private String corpID="ww9e2138f2d49466af";
+
+    private int agentId=1000026;
+
+    private String secret="r28SEqj_dsrRbwF_jSx2FEkhnLVUSs8kpPY1UB1OFZU";
 
     private String touser;
+
+    private String proxy;
 
     @Override
     public void afterPropertiesSet() throws Exception {

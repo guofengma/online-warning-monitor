@@ -1,5 +1,6 @@
 package com.carrying.coder.autoconfiguration;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.carrying.coder.config.QyWeiXinAppProperties;
@@ -12,11 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -31,7 +32,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class MessageSenderAutoConfiguration {
 
-    ObjectMapper objectMapper = new ObjectMapper(  );
+    ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private QyWeiXinAppProperties properties;
@@ -53,12 +54,23 @@ public class MessageSenderAutoConfiguration {
             @Override
             public boolean send(TxtMessage txtMessage) {
 
+                Map<String, String> headerMap = new HashMap<>();
+                String url = QyWeiXinAppProperties.PROTOCOL + "://" + QyWeiXinAppProperties.HOST
+                    + QyWeiXinAppProperties.PATH;
+                HttpHeaders headers = new HttpHeaders();;
+
+                if (!StringUtils.isEmpty( properties.getProxy() )) {
+                    final String targetHost = QyWeiXinAppProperties.PROTOCOL + "://" + QyWeiXinAppProperties.HOST;
+                    url = properties.getProxy() + QyWeiXinAppProperties.PATH;
+                    headers.set( "referer", targetHost );
+                }
+
                 TxtContent content = new TxtContent( txtMessage.getTxtMsg() );
                 content.setAgentid( properties.getAgentId() );
 
-                if(StringUtils.isEmpty( properties.getTouser() )){
+                if (StringUtils.isEmpty( properties.getTouser() )) {
                     content.setTouser( "@all" );
-                }else{
+                } else {
                     content.setTouser( properties.getTouser() );
                 }
 
@@ -66,17 +78,18 @@ public class MessageSenderAutoConfiguration {
                 content.setSafe( 0 );
 
                 try {
-                    log.info( "#####send message content{}",objectMapper.writeValueAsString( content ) );
+                    log.info( "#####send message content{}", objectMapper.writeValueAsString( content ) );
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
 
-                HttpEntity<TxtContent> entity = new HttpEntity<>( content );
+                HttpEntity<TxtContent> entity = new HttpEntity<>( content, headers );
+
                 ResponseEntity<Map> result = restTemplate.postForEntity(
-                    "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={access_token}", entity,
+                    url, entity,
                     Map.class, tokenHolder.getToken() );
 
-                log.info( "#####send message Result{}",result );
+                log.info( "#####send message Result{}", result );
 
                 return true;
             }
