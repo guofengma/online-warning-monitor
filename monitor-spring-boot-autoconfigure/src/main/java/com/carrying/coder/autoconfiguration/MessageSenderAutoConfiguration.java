@@ -54,14 +54,13 @@ public class MessageSenderAutoConfiguration {
             @Override
             public boolean send(TxtMessage txtMessage) {
 
-                Map<String, String> headerMap = new HashMap<>();
                 String url = QyWeiXinAppProperties.PROTOCOL + "://" + QyWeiXinAppProperties.HOST
-                    + QyWeiXinAppProperties.PATH;
-                HttpHeaders headers = new HttpHeaders();;
+                    + QyWeiXinAppProperties.SEND_PATH;
+                HttpHeaders headers = new HttpHeaders();
 
                 if (!StringUtils.isEmpty( properties.getProxy() )) {
                     final String targetHost = QyWeiXinAppProperties.PROTOCOL + "://" + QyWeiXinAppProperties.HOST;
-                    url = properties.getProxy() + QyWeiXinAppProperties.PATH;
+                    url = properties.getProxy() + QyWeiXinAppProperties.SEND_PATH;
                     headers.set( "referer", targetHost );
                 }
 

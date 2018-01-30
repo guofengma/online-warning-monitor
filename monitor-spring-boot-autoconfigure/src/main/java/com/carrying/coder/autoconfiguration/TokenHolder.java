@@ -10,12 +10,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -24,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
  * @create 2017-12-13 下午2:04
  **/
 @Configuration
-@ConditionalOnProperty(name = "qy.weixin.enable",havingValue = "true")
+@ConditionalOnProperty(name = "qy.weixin.enable", havingValue = "true")
 @EnableConfigurationProperties(QyWeiXinAppProperties.class)
 @Slf4j
 public class TokenHolder implements InitializingBean {
@@ -45,8 +46,6 @@ public class TokenHolder implements InitializingBean {
     private Object monitor = new Object();
 
     private ExecutorService tokenThreadPool = Executors.newFixedThreadPool( 2 );
-
-
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -93,6 +92,10 @@ public class TokenHolder implements InitializingBean {
 
         private RestTemplate template;
 
+        private String tokenUrl = QyWeiXinAppProperties.PROTOCOL + "://" + QyWeiXinAppProperties.HOST
+            + QyWeiXinAppProperties.TOKEN_PATH;
+
+
         public FatchTokenAndRefresh(RestTemplate template) {
             this.template = template;
         }
@@ -110,16 +113,30 @@ public class TokenHolder implements InitializingBean {
                         }
                     }
 
-                    Map<String, Object> result = template.getForObject(
-                        "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={corpID}&corpsecret={SECRECT}",
-                        Map.class, properties.getCorpID(), properties.getSecret() );
-                    log.warn( "########token Result:{}", result );
-                    if (result != null) {
-                        token = result.get( "access_token" ).toString();
-                        expire.addAndGet( Integer.parseInt( result.get( "expires_in" ).toString() ) );
-                        expired = false;
-                        monitor.notifyAll();
+                    HttpHeaders headers = new HttpHeaders();
+
+                    if (!StringUtils.isEmpty( properties.getProxy() )) {
+                        final String targetHost = QyWeiXinAppProperties.PROTOCOL + "://" + QyWeiXinAppProperties.HOST;
+                        tokenUrl = properties.getProxy() + QyWeiXinAppProperties.SEND_PATH;
+                        headers.set( "referer", targetHost );
                     }
+
+                    try {
+                        HttpEntity<String> entity = new HttpEntity<String>( headers );
+                        ResponseEntity<Map> response = template.exchange( tokenUrl, HttpMethod.GET, entity,
+                            Map.class ,properties.getCorpID(), properties.getSecret());
+                        Map<String, Object> result = response.getBody();
+                        log.warn( "########token Result:{}", result );
+                        if (result != null) {
+                            token = result.get( "access_token" ).toString();
+                            expire.addAndGet( Integer.parseInt( result.get( "expires_in" ).toString() ) );
+                            expired = false;
+                            monitor.notifyAll();
+                        }
+                    } catch (Exception eek) {
+                        eek.getMessage();
+                    }
+
 
                 }
             }

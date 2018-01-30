@@ -21,7 +21,8 @@ public class QyWeiXinAppProperties implements InitializingBean{
 
     public static String HOST="qyapi.weixin.qq.com";
 
-    public static String PATH = "/cgi-bin/message/send?access_token={access_token}";
+    public static String SEND_PATH = "/cgi-bin/message/send?access_token={access_token}";
+    public static String TOKEN_PATH = "/cgi-bin/gettoken?corpid={corpID}&corpsecret={SECRECT}";
 
     private String corpID="ww9e2138f2d49466af";
 
