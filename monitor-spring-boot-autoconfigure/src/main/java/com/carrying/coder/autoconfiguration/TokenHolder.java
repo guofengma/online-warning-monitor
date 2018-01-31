@@ -117,7 +117,7 @@ public class TokenHolder implements InitializingBean {
 
                     if (!StringUtils.isEmpty( properties.getProxy() )) {
                         final String targetHost = QyWeiXinAppProperties.PROTOCOL + "://" + QyWeiXinAppProperties.HOST;
-                        tokenUrl = properties.getProxy() + QyWeiXinAppProperties.SEND_PATH;
+                        tokenUrl = properties.getProxy() + QyWeiXinAppProperties.TOKEN_PATH;
                         headers.set( "referer", targetHost );
                     }
 
